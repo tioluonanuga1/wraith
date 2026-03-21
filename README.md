@@ -10,7 +10,7 @@ No more rewriting the same character description five different ways. No more gu
 
 ## ✦ Live Demo
 
-🔗 **[wraith.yoursite.com](https://wraith.yoursite.com)** *(replace with your Netlify URL after deployment)*
+🔗 **[wraith-app.netlify.app](https://wraith-app.netlify.app)**
 
 ---
 

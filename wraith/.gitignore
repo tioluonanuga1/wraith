@@ -1,0 +1,42 @@
+# ── OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ── Editor / IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+
+# ── Node (if any tooling is added later)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# ── Build output (if a build step is added later)
+dist/
+build/
+.cache/
+
+# ── Local environment
+.env
+.env.local
+.env.*.local
+
+# ── Deployment artefacts
+*.zip
+*.tar.gz
+
+# ── Misc
+DESCRIPTION
+GITHUB_TOPICS.txt

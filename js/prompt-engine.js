@@ -1,5 +1,5 @@
 (function () {
-  const pf = (window.PersonaForge = window.PersonaForge || {});
+  const pf = (window.Wraith = window.Wraith || {});
   const { g, chips, sl, setOut } = pf.helpers;
 
   function buildGeminiProse(

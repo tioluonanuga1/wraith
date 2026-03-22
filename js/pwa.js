@@ -28,6 +28,13 @@
   }
 
   function initPwa() {
+    const isHttpLike = window.location.protocol === 'http:' || window.location.protocol === 'https:';
+
+    if (!isHttpLike) {
+      console.info('[WRAITH] PWA features are disabled during file:// preview. Use a local server to test install and offline support.');
+      updateOnlineStatus();
+      return;
+    }
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', async () => {
         try {
@@ -84,6 +91,6 @@
   window.triggerInstall = triggerInstall;
   window.dismissInstall = dismissInstall;
 
-  window.PersonaForge = window.PersonaForge || {};
-  window.PersonaForge.initPwa = initPwa;
+  window.Wraith = window.Wraith || {};
+  window.Wraith.initPwa = initPwa;
 })();

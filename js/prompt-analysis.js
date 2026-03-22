@@ -1,5 +1,5 @@
 (function () {
-  const pf = (window.PersonaSummon = window.PersonaSummon || {});
+  const pf = (window.Wraith = window.Wraith || {});
 
   function scoreFromDeductions(start, deductions) {
     return Math.max(0, Math.min(100, start - deductions.reduce((sum, item) => sum + item, 0)));

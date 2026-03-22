@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>WRAITH - Character Summoning Engine</title>
+
+<!-- PWA MANIFEST -->
+<link rel="manifest" href="manifest.json">
+
+<!-- THEME & BROWSER CHROME -->
+<meta name="theme-color" content="#7b6ef6">
+<meta name="background-color" content="#09090f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="WRAITH">
+
+<!-- APPLE / IOS PWA -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WRAITH">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png">
+<link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png">
+
+<!-- MICROSOFT TILE -->
+<meta name="msapplication-TileColor" content="#09090f">
+<meta name="msapplication-TileImage" content="icons/icon-144.png">
+<meta name="msapplication-config" content="none">
+
+<!-- SEO / SHARE META -->
+<meta name="description" content="Every character, summoned in every platform. Full character locks for Nano Banana, Gemini, Grok, ChatGPT and Perplexity. Phantom and Manifest modes.">
+<meta name="keywords" content="WRAITH, AI character generator, prompt engineering, character summoning, game character, photorealistic, Nano Banana, Grok, Gemini">
+<meta name="robots" content="index,follow">
+<meta property="og:title" content="WRAITH - Character Summoning Engine">
+<meta property="og:description" content="Every character, summoned in every platform.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="WRAITH">
+
+<!-- FAVICON -->
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-96.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/icon-72.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<div class="save-flash" id="save-flash">BOUND TO THE VAULT</div>
+
+<!-- LIBRARY TRIGGER -->
+<div class="lib-trigger" onclick="openLibrary()" title="Character Library">
+  <span>LIBRARY</span>
+  <span class="lib-count" id="lib-count">0</span>
+</div>
+
+<!-- LIBRARY OVERLAY + DRAWER -->
+<div class="lib-overlay" id="lib-overlay" onclick="closeLibrary()"></div>
+
+<div class="lib-drawer" id="lib-drawer">
+  <div class="lib-header">
+    <div>
+      <div class="lib-title">THE <span>VAULT</span></div>
+      <div class="lib-subtitle">BOUND CHARACTERS - CLICK TO RECALL</div>
+    </div>
+    <button class="lib-close" onclick="closeLibrary()">X</button>
+  </div>
+  <div class="lib-save-bar">
+    <input type="text" id="preset-name" placeholder="Name this summoning..." maxlength="40"
+      onkeydown="if(event.key==='Enter') savePreset()">
+    <button class="lib-save-btn" onclick="savePreset()">BIND</button>
+  </div>
+  <div class="lib-search-bar">
+    <input type="text" id="lib-search" placeholder="Search the Vault..." oninput="renderLibrary()">
+  </div>
+  <div class="lib-list" id="lib-list">
+    <div class="lib-empty" id="lib-empty">
+      The Vault is empty.<br>
+      Fill in a character and hit <strong>BIND</strong><br>to build your library.
+    </div>
+  </div>
+  <div class="lib-footer">
+    <span class="lib-footer-count" id="lib-footer-count">0 BOUNDS</span>
+    <button class="lib-clear-btn" onclick="clearLibrary()">DISSOLVE ALL</button>
+  </div>
+</div>
+
+<header>
+  <div class="hinner">
+    <div>
+      <div class="pre">WRAITH - Character Summoning Engine - Beta</div>
+      <div class="logo"><span class="p1">W</span><span class="p2">RAI</span><span class="p3">TH</span></div>
+      <div class="logo-sub">Every character, summoned in every platform.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;align-items:flex-end;">
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="modeGame" onclick="setMode('game')">
+          <span class="icon">P</span> PHANTOM MODE
+        </button>
+        <button class="mode-btn photo-mode" id="modePhoto" onclick="setMode('photo')">
+          <span class="icon">M</span> MANIFEST MODE
+        </button>
+      </div>
+      <div class="platform-row">
+        <div class="pbadge"><div class="pdot" style="background:var(--nb)"></div>NANO BANANA</div>
+        <div class="pbadge"><div class="pdot" style="background:var(--gemini)"></div>GEMINI</div>
+        <div class="pbadge"><div class="pdot" style="background:var(--grok)"></div>GROK</div>
+        <div class="pbadge"><div class="pdot" style="background:var(--gpt)"></div>CHATGPT</div>
+        <div class="pbadge"><div class="pdot" style="background:var(--px)"></div>PERPLEXITY</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="app">
+
+<!-- FORM COLUMN -->
+<div class="form-col">
+
+  <!-- 01 GENDER -->
+  <div class="sec">
+    <div class="sec-hd">
+      <span class="sec-n">01</span>
+      <span class="sec-t">Gender & Identity</span>
+      <span class="sec-line"></span>
+    </div>
+    <div class="gender-toggle">
+      <button class="gender-btn male active" onclick="setGender('male')">M MALE</button>
+      <button class="gender-btn female" onclick="setGender('female')">F FEMALE</button>
+      <button class="gender-btn nonbinary" onclick="setGender('nonbinary')">NB NON-BINARY</button>
+    </div>
+    <div class="g2">
+      <div class="f">
+        <label>Age Range</label>
+        <select id="age">
+          <option value="">- select -</option>
+          <option>Early 20s</option>
+          <option>Mid 20s</option>
+          <option>Late 20s</option>
+          <option>Early 30s</option>
+          <option>Late 30s</option>
+          <option>Mid 40s</option>
+          <option>50s</option>
+        </select>
+      </div>
+      <div class="f">
+        <label>Ethnicity / Heritage</label>
+        <input type="text" id="ethnicity" placeholder="Type or pick..." list="ethnicity-list" autocomplete="off">
+        <datalist id="ethnicity-list">
+          <option value="West African">
+          <option value="East African - Ethiopian / Somali">
+          <option value="Nigerian / Yoruba">
+          <option value="South African">
+          <option value="Japanese">
+          <option value="Korean">
+          <option value="Chinese - Han">
+          <option value="Southeast Asian - Filipino / Vietnamese">
+          <option value="South Asian - Indian">
+          <option value="South Asian - Pakistani">
+          <option value="Latin American - Brazilian">
+          <option value="Latin American - Mexican">
+          <option value="Middle Eastern - Lebanese">
+          <option value="Middle Eastern - Persian">
+          <option value="Northern European - Scandinavian">
+          <option value="Southern European - Italian">
+          <option value="Southern European - Spanish">
+          <option value="Eastern European - Russian">
+          <option value="Eastern European - Ukrainian">
+          <option value="Mixed - Black and White">
+          <option value="Mixed - Asian and Black">
+          <option value="Indigenous - Native American">
+          <option value="Caribbean - Jamaican">
+        </datalist>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 BODY TYPE -->
+  <div class="sec">
+    <div class="sec-hd">
+      <span class="sec-n">02</span>
+      <span class="sec-t">Body Type</span>
+      <span class="sec-line"></span>
+      <span class="sec-note">Select one</span>
+    </div>
+
+    <!-- MALE BODIES -->
+    <div id="bodies-male" class="body-grid">
+      <div class="body-card" data-val="lean athletic male physique, visible muscle definition, low body fat" onclick="pickBody(this)">
+        <div class="body-icon">+</div>
+        <div class="body-name">LEAN ATHLETIC</div>
+        <div class="body-desc">Runner's build, defined</div>
+      </div>
+      <div class="body-card" data-val="muscular mesomorph male, broad shoulders, developed chest and arms" onclick="pickBody(this)">
+        <div class="body-icon">+</div>
+        <div class="body-name">MUSCULAR</div>
+        <div class="body-desc">Broad, developed</div>
+      </div>
+      <div class="body-card" data-val="powerfully built stocky male, wide frame, thick neck and forearms" onclick="pickBody(this)">
+        <div class="body-icon">+</div>
+        <div class="body-name">STOCKY POWER</div>
+        <div class="body-desc">Dense, imposing</div>
+      </div>
+      <div class="body-card" data-val="tall slender ectomorph male, long limbs, narrow frame" onclick="pickBody(this)">
+        <div class="body-icon">+</div>
+        <div class="body-name">TALL SLENDER</div>
+        <div class="body-desc">Lean, elongated</div>
+      </div>
+      <div class="body-card" data-val="average male build, slightly soft mid-section, realistic everyday physique" onclick="pickBody(this)">
+        <div class="body-icon">+</div>
+        <div class="body-name">AVERAGE</div>
+        <div class="body-desc">Realistic everyday</div>
+      </div>
+      <div class="body-card" data-val="large heavyset male, broad chest, barrel torso, naturally commanding presence" onclick="pickBody(this)">
+        <div class="body-icon">+</div>
+        <div class="body-name">HEAVYSET</div>
+        <div class="body-desc">Large, commanding</div>
+      </div>
+      <div class="body-card" data-val="wiry sinewy male physique, lean hard muscle, minimal fat, fighter's build" onclick="pickBody(this)">
+        <div class="body-icon">+</div>
+        <div class="body-name">WIRY FIGHTER</div>
+        <div class="body-desc">Hard, functional</div>
+      </div>
+      <div class="body-card" data-val="bodybuilder physique, extreme muscle mass and definition, competition-level" onclick="pickBody(this)">
+        <div class="body-icon">+</div>
+        <div class="body-name">BODYBUILDER</div>
+        <div class="body-desc">Extreme mass</div>
+      </div>
+    </div>
+
+    <!-- FEMALE BODIES -->
+    <div id="bodies-female" class="body-grid" style="display:none;">
+      <div class="body-card rose" data-val="slender lean female physique, toned limbs, flat stomach, model build" onclick="pickBody(this)">
+        <div class="body-icon">+</div>
+        <div class="body-name">SLENDER</div>
+        <div class="body-desc">Model lean</div>
+      </div>
+      <div class="body-card rose" data-val="athletic female build, toned muscle definition, strong legs and arms, fit" onclick="pickBody(this)">
+        <div class="body-icon">+</div>
+        <div class="body-name">ATHLETIC</div>
+        <div class="body-desc">Strong and fit</div>
+      </div>
+      <div class="body-card rose" data-val="hourglass figure, full bust and hips, defined waist, curvy proportions" onclick="pickBody(this)">
+        <div class="body-icon">+</div>
+        <div class="body-name">HOURGLASS</div>
+        <div class="body-desc">Classic curves</div>
+      </div>
+      <div class="body-card rose" data-val="pear-shaped body, smaller upper body, fuller hips and thighs, feminine" onclick="pickBody(this)">
+        <div class="body-icon">+</div>
+        <div class="body-name">PEAR</div>
+        <div class="body-desc">Fuller lower body</div>
+      </div>
+      <div class="body-card rose" data-val="petite female frame, small compact proportions, delicate features" onclick="pickBody(this)">
+        <div class="body-icon">+</div>
+        <div class="body-name">PETITE</div>
+        <div class="body-desc">Small, compact</div>
+      </div>
+      <div class="body-card rose" data-val="tall statuesque female, long legs, commanding height and presence" onclick="pickBody(this)">
+        <div class="body-icon">+</div>
+        <div class="body-name">STATUESQUE</div>
+        <div class="body-desc">Tall, striking</div>
+      </div>
+      <div class="body-card rose" data-val="plus-size voluptuous female, full figure, soft curves, confident presence" onclick="pickBody(this)">
+        <div class="body-icon">+</div>
+        <div class="body-name">VOLUPTUOUS</div>
+        <div class="body-desc">Full, confident</div>
+      </div>
+      <div class="body-card rose" data-val="muscular athletic female, defined arms and legs, strong back, powerful" onclick="pickBody(this)">
+        <div class="body-icon">+</div>
+        <div class="body-name">MUSCULAR</div>
+        <div class="body-desc">Strong, defined</div>
+      </div>
+    </div>
+
+    <!-- NONBINARY BODIES -->
+    <div id="bodies-nonbinary" class="body-grid" style="display:none;">
+      <div class="body-card" data-val="androgynous slender physique, angular features, ambiguous gender presentation" onclick="pickBody(this)">
+        <div class="body-icon">+</div>
+        <div class="body-name">ANDROGYNOUS</div>
+        <div class="body-desc">Fluid, angular</div>
+      </div>
+      <div class="body-card" data-val="athletic gender-neutral build, lean and toned, balanced proportions" onclick="pickBody(this)">
+        <div class="body-icon">+</div>
+        <div class="body-name">ATHLETIC NB</div>
+        <div class="body-desc">Balanced, lean</div>
+      </div>
+      <div class="body-card" data-val="soft non-binary figure, gentle curves, neutral presentation" onclick="pickBody(this)">
+        <div class="body-icon">+</div>
+        <div class="body-name">SOFT</div>
+        <div class="body-desc">Gentle, neutral</div>
+      </div>
+      <div class="body-card" data-val="tall striking non-binary presence, long limbs, editorial model quality" onclick="pickBody(this)">
+        <div class="body-icon">+</div>
+        <div class="body-name">EDITORIAL</div>
+        <div class="body-desc">Striking, tall</div>
+      </div>
+    </div>
+
+    <!-- Proportions -->
+    <div style="margin-top:14px;" class="g2">
+      <div class="f">
+        <label>Height</label>
+        <select id="height">
+          <option value="">- unspecified -</option>
+          <option>Very short (under 5'3)</option>
+          <option>Short (5'3-5'5)</option>
+          <option>Average (5'6-5'8)</option>
+          <option>Tall (5'9-6'0)</option>
+          <option>Very tall (over 6'1)</option>
+        </select>
+      </div>
+      <div class="f">
+        <label>Additional Body Detail</label>
+        <input type="text" id="body-extra" placeholder="Type or pick..." list="body-extra-list" autocomplete="off">
+        <datalist id="body-extra-list">
+          <option value="sleeve tattoo on left arm, detailed">
+          <option value="small tattoos scattered, meaningful">
+          <option value="faded stretch marks, natural">
+          <option value="surgical scar on abdomen">
+          <option value="tan lines visible, active outdoor lifestyle">
+          <option value="calloused hands, working history">
+          <option value="athletic tan - darker forearms and neck">
+          <option value="beauty mark on collarbone">
+          <option value="vitiligo patches, natural and striking">
+          <option value="prominent veins on forearms, muscular">
+          <option value="burn scar on shoulder, old wound">
+          <option value="dark knuckles, fighter history">
+          <option value="body hair - chest and arms, natural">
+          <option value="smooth body, little visible hair">
+        </datalist>
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 FACE -->
+  <div class="sec">
+    <div class="sec-hd">
+      <span class="sec-n">03</span>
+      <span class="sec-t">Face</span>
+      <span class="sec-line"></span>
+    </div>
+    <div class="g2">
+      <div class="f">
+        <label>Bone Structure</label>
+        <select id="bone">
+          <option value="">- select -</option>
+          <option>Strong jaw, wide cheekbones</option>
+          <option>Soft oval, refined features</option>
+          <option>Angular sharp jaw</option>
+          <option>Square jaw, heavy brow</option>
+          <option>High cheekbones, narrow jaw</option>
+          <option>Round face, soft jaw</option>
+          <option>Heart-shaped face</option>
+          <option>Diamond face, defined cheeks</option>
+        </select>
+      </div>
+      <div class="f">
+        <label>Eyes</label>
+        <input type="text" id="eyes" placeholder="Type or pick..." list="eyes-list" autocomplete="off">
+        <datalist id="eyes-list">
+          <option value="deep-set dark brown, heavy brow">
+          <option value="almond-shaped warm brown">
+          <option value="wide hazel, flecked gold and green">
+          <option value="pale blue-grey, cold and piercing">
+          <option value="deep green, expressive">
+          <option value="hooded dark eyes, intense">
+          <option value="large round dark eyes, luminous">
+          <option value="narrow sharp black eyes, calculating">
+          <option value="amber honey-colored eyes">
+          <option value="heterochromia - one blue one brown">
+          <option value="upturned cat eyes, dark">
+          <option value="downturned soft brown, melancholy">
+          <option value="ice blue, almost translucent">
+          <option value="dark eyes with prominent eye bags, lived-in">
+        </datalist>
+      </div>
+      <div class="f">
+        <label>Lips</label>
+        <input type="text" id="lips" placeholder="Type or pick..." list="lips-list" autocomplete="off">
+        <datalist id="lips-list">
+          <option value="full natural lips, soft and relaxed">
+          <option value="defined cupid's bow, medium volume">
+          <option value="thin firm lips, set jaw">
+          <option value="wide generous mouth, easy smile">
+          <option value="pouty lower lip, slightly parted">
+          <option value="dark pigmented lips, natural">
+          <option value="chapped, rough, rugged lips">
+          <option value="glossy full lips">
+          <option value="tight lips held in a slight smirk">
+          <option value="bow-shaped lips, deep rose tone">
+        </datalist>
+      </div>
+      <div class="f">
+        <label>Skin Tone</label>
+        <select id="skin-tone">
+          <option value="">- select -</option>
+          <option>Fair porcelain</option>
+          <option>Light warm ivory</option>
+          <option>Medium olive</option>
+          <option>Medium warm tan</option>
+          <option>Medium-deep caramel</option>
+          <option>Deep brown</option>
+          <option>Rich deep ebony</option>
+        </select>
+      </div>
+      <div class="f span2">
+        <label>Skin Details</label>
+        <div class="chips">
+          <div class="chip" data-val="visible pores, natural skin texture">Pores visible</div>
+          <div class="chip" data-val="subtle stubble">Stubble</div>
+          <div class="chip" data-val="freckles across nose and cheeks">Freckles</div>
+          <div class="chip" data-val="faint scars">Faint scars</div>
+          <div class="chip" data-val="sun-kissed glow">Sun-kissed</div>
+          <div class="chip" data-val="beauty marks">Beauty marks</div>
+          <div class="chip" data-val="laugh lines, expressive face">Laugh lines</div>
+          <div class="chip" data-val="sharp cheekbone definition">Sharp cheeks</div>
+          <div class="chip" data-val="heavy-lidded bedroom eyes">Heavy-lidded</div>
+          <div class="chip" data-val="full natural brows">Full brows</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 04 HAIR -->
+  <div class="sec">
+    <div class="sec-hd">
+      <span class="sec-n">04</span>
+      <span class="sec-t">Hair</span>
+      <span class="sec-line"></span>
+    </div>
+    <div class="g2">
+      <div class="f">
+        <label>Style & Length</label>
+        <input type="text" id="hair-style" placeholder="Type or pick..." list="hair-style-list" autocomplete="off">
+        <datalist id="hair-style-list">
+          <option value="short textured fade, tight sides">
+          <option value="medium length, loose waves">
+          <option value="long straight, centre parted">
+          <option value="buzz cut, close cropped">
+          <option value="locs - medium length">
+          <option value="natural afro, full volume">
+          <option value="braided cornrows, close to head">
+          <option value="thick twists, mid-length">
+          <option value="shaved sides, longer on top - pushed back">
+          <option value="curtain fringe, 90s mid-length">
+          <option value="long wavy, wild and voluminous">
+          <option value="pixie cut, textured and short">
+          <option value="high ponytail, sleek">
+          <option value="messy bun, loose strands falling">
+          <option value="beachy waves, sun-lightened ends">
+          <option value="undercut, slicked back on top">
+          <option value="faux hawk, styled upward">
+          <option value="shoulder-length bob, blunt cut">
+          <option value="ringlet curls, natural spring">
+          <option value="half-up half-down, casual">
+        </datalist>
+      </div>
+      <div class="f">
+        <label>Color</label>
+        <input type="text" id="hair-color" placeholder="Type or pick..." list="hair-color-list" autocomplete="off">
+        <datalist id="hair-color-list">
+          <option value="jet black">
+          <option value="rich dark brown">
+          <option value="warm chestnut brown">
+          <option value="dark auburn red">
+          <option value="deep copper red">
+          <option value="dirty blonde">
+          <option value="platinum blonde">
+          <option value="warm honey blonde">
+          <option value="strawberry blonde">
+          <option value="salt and pepper - greying temples">
+          <option value="silver grey, distinguished">
+          <option value="bleached white blonde">
+          <option value="ombre - dark roots fading to blonde">
+          <option value="natural black with sun-faded tips">
+          <option value="blue-black, iridescent sheen">
+        </datalist>
+      </div>
+      <div class="f span2">
+        <label>Hair State</label>
+        <div class="chips">
+          <div class="chip" data-val="natural hair movement, windswept">Windswept</div>
+          <div class="chip" data-val="disheveled, just-woken look">Disheveled</div>
+          <div class="chip" data-val="slicked back, controlled">Slicked back</div>
+          <div class="chip" data-val="loose hair falling over face">Falling over face</div>
+          <div class="chip" data-val="tightly coiled natural texture">Tight coils</div>
+          <div class="chip" data-val="wet hair, water drops">Wet</div>
+          <div class="chip" data-val="messy bun, loose strands">Messy bun</div>
+          <div class="chip" data-val="braided, intricate">Braided</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 05 POSE -->
+  <div class="sec">
+    <div class="sec-hd">
+      <span class="sec-n">05</span>
+      <span class="sec-t">Pose & Body Language</span>
+      <span class="sec-line"></span>
+      <span class="sec-note">Select one</span>
+    </div>
+
+    <div class="pose-tabs">
+      <div class="pose-tab active" onclick="switchPoseTab('neutral')">NEUTRAL</div>
+      <div class="pose-tab" onclick="switchPoseTab('action')">ACTION</div>
+      <div class="pose-tab" onclick="switchPoseTab('editorial')">EDITORIAL</div>
+      <div class="pose-tab" onclick="switchPoseTab('intimate')">INTIMATE</div>
+      <div class="pose-tab couple-tab" onclick="switchPoseTab('couple')">COUPLE</div>
+    </div>
+
+    <!-- NEUTRAL - 12 poses -->
+    <div class="pose-group show" id="pose-neutral">
+      <div class="chip" data-val="standing tall, confident relaxed posture, arms at sides" onclick="pickPose(this)">Standing - confident</div>
+      <div class="chip" data-val="leaning against wall, one leg bent, arms crossed loosely" onclick="pickPose(this)">Wall lean</div>
+      <div class="chip" data-val="seated casually, one arm resting on knee, direct gaze at camera" onclick="pickPose(this)">Seated casual</div>
+      <div class="chip" data-val="three-quarter turn, looking back over shoulder with intent" onclick="pickPose(this)">Over-shoulder turn</div>
+      <div class="chip" data-val="walking forward naturally, caught mid-step, candid movement" onclick="pickPose(this)">Mid-walk</div>
+      <div class="chip" data-val="hands deep in pockets, relaxed weight shift to one leg, chin slightly down" onclick="pickPose(this)">Hands in pockets</div>
+      <div class="chip" data-val="sitting on ground, arms loosely wrapped around knees, contemplative" onclick="pickPose(this)">Ground sit</div>
+      <div class="chip" data-val="crouching down, forearms on knees, looking directly ahead" onclick="pickPose(this)">Crouching</div>
+      <div class="chip" data-val="leaning on a surface with both forearms, relaxed forward lean, casual" onclick="pickPose(this)">Forearm lean</div>
+      <div class="chip" data-val="sitting on steps or ledge, one knee raised, elbow resting on knee" onclick="pickPose(this)">Steps sit - knee up</div>
+      <div class="chip" data-val="arms folded behind head, reclined back slightly, open and relaxed posture" onclick="pickPose(this)">Hands behind head</div>
+      <div class="chip" data-val="standing slightly side-on, one shoulder toward camera, relaxed jaw" onclick="pickPose(this)">Side-on relaxed</div>
+    </div>
+
+    <!-- ACTION - 12 poses -->
+    <div class="pose-group" id="pose-action">
+      <div class="chip" data-val="mid-sprint, explosive forward lean, motion blur on limbs, determined face" onclick="pickPose(this)">Mid-sprint</div>
+      <div class="chip" data-val="combat ready stance, fists raised, weight shifted forward, coiled energy" onclick="pickPose(this)">Combat stance</div>
+      <div class="chip" data-val="leaping through air, arms spread wide, dynamic upward angle" onclick="pickPose(this)">Mid-leap</div>
+      <div class="chip" data-val="drawing weapon from holster, explosive twist, coiled tension" onclick="pickPose(this)">Drawing weapon</div>
+      <div class="chip" data-val="spinning rapidly, coat or hair whipping around, kinetic blur" onclick="pickPose(this)">Dynamic spin</div>
+      <div class="chip" data-val="on one knee, one fist braced on ground, catching breath, recovering" onclick="pickPose(this)">Kneeling recovery</div>
+      <div class="chip" data-val="arms raised overhead in triumph, chest open, face upward" onclick="pickPose(this)">Triumph - arms raised</div>
+      <div class="chip" data-val="hands gripping ledge, body hanging, feet dangling below" onclick="pickPose(this)">Hanging grip</div>
+      <div class="chip" data-val="sliding to a stop, one leg extended, dust kicking up" onclick="pickPose(this)">Slide stop</div>
+      <div class="chip" data-val="mid-punch, full extension, shoulders rotated, impact moment" onclick="pickPose(this)">Mid-punch</div>
+      <div class="chip" data-val="back against wall, weapon raised, about to breach, held breath" onclick="pickPose(this)">Breach stance</div>
+      <div class="chip" data-val="falling backward off ledge, arms out, face to sky, freefall" onclick="pickPose(this)">Controlled fall</div>
+    </div>
+
+    <!-- EDITORIAL - 14 poses -->
+    <div class="pose-group" id="pose-editorial">
+      <div class="chip" data-val="high fashion editorial, angular limbs, striking deliberate asymmetry" onclick="pickPose(this)">High fashion angular</div>
+      <div class="chip" data-val="chin down, eyes directly up into camera, intense and magnetic" onclick="pickPose(this)">Chin down - eyes up</div>
+      <div class="chip" data-val="sitting on chair edge, legs slightly open, elbows on knees, commanding" onclick="pickPose(this)">Power sit</div>
+      <div class="chip" data-val="full body reclining, propped on one elbow, legs long and extended" onclick="pickPose(this)">Reclining elongated</div>
+      <div class="chip" data-val="one hand on hip, slight S-curve to spine, weight on back foot, confident" onclick="pickPose(this)">S-curve stand</div>
+      <div class="chip" data-val="profile silhouette, chin tilted upward, elegant neck line prominent" onclick="pickPose(this)">Profile chin-up</div>
+      <div class="chip" data-val="full back to camera, face turned over shoulder, spine line visible" onclick="pickPose(this)">Back to camera</div>
+      <div class="chip" data-val="both hands running through hair, eyes closed, head tilted back" onclick="pickPose(this)">Hair toss - head back</div>
+      <div class="chip" data-val="seated cross-legged on floor, elbows on knees, head resting on interlaced fingers" onclick="pickPose(this)">Floor seat - hands under chin</div>
+      <div class="chip" data-val="one hand touching jaw or neck lightly, eyes locked at camera, composed" onclick="pickPose(this)">Hand to jaw</div>
+      <div class="chip" data-val="facing away, arms slightly lifted from sides, looking at horizon, cinematic wide" onclick="pickPose(this)">Horizon wide</div>
+      <div class="chip" data-val="half kneeling, one arm draped over raised knee, looking sideways" onclick="pickPose(this)">Half-kneel drape</div>
+      <div class="chip" data-val="both arms crossed over chest, strong stance, eyes challenging camera" onclick="pickPose(this)">Arms crossed - dominant</div>
+      <div class="chip" data-val="sitting backward on chair, chin resting on arms folded over chair back" onclick="pickPose(this)">Reverse chair sit</div>
+    </div>
+
+    <!-- INTIMATE / RISQUE - 14 poses -->
+    <div class="pose-group" id="pose-intimate">
+      <div class="chip rose" data-val="lying on back, arms stretched fully above head, back lightly arched, body elongated" onclick="pickPose(this)">Lying - arms above</div>
+      <div class="chip rose" data-val="kneeling upright on surface, hands resting on thighs, spine straight, direct intimate gaze" onclick="pickPose(this)">Kneeling upright</div>
+      <div class="chip rose" data-val="lying on stomach, chin propped on both hands, ankles crossed in air behind, playful" onclick="pickPose(this)">Prone - chin on hands</div>
+      <div class="chip rose" data-val="seated, one knee raised, torso twisted sideways, full side profile exposed" onclick="pickPose(this)">Seated - side profile</div>
+      <div class="chip rose" data-val="standing back to camera, both hands pressed to wall, full back and curve visible" onclick="pickPose(this)">Wall press - back view</div>
+      <div class="chip rose" data-val="leaning back on both hands on surface, legs extended forward, open posture" onclick="pickPose(this)">Leaning back - open</div>
+      <div class="chip rose" data-val="straddling a surface or chair, facing forward, arms draped over the back" onclick="pickPose(this)">Straddle sit</div>
+      <div class="chip rose" data-val="lying on side, top leg slightly forward, body in natural S-curve, arm under head" onclick="pickPose(this)">Side-lying S-curve</div>
+      <div class="chip rose" data-val="half-turned from camera, chin over shoulder, lower back arch emphasized" onclick="pickPose(this)">Half-turn - lower back</div>
+      <div class="chip rose" data-val="seated on bed edge, leaning forward over knees, robe or fabric falling open" onclick="pickPose(this)">Bed edge lean</div>
+      <div class="chip rose" data-val="standing, one arm raised against doorframe, body weight relaxed to one hip" onclick="pickPose(this)">Doorframe lean</div>
+      <div class="chip rose" data-val="on all fours, back straight, looking over shoulder toward camera, powerful" onclick="pickPose(this)">All fours - over shoulder</div>
+      <div class="chip rose" data-val="lying face-up, one knee bent upward, head turned to side, natural and relaxed" onclick="pickPose(this)">Lying - knee raised</div>
+      <div class="chip rose" data-val="seated, legs crossed and drawn in, arms wrapped loosely around shins, intimate curl" onclick="pickPose(this)">Seated curl - intimate</div>
+    </div>
+
+    <!-- COUPLE / SCENE - 10 poses -->
+    <div class="pose-group" id="pose-couple">
+      <div class="chip gold" data-val="two figures, one from behind arms wrapped around the other, intimate embrace from behind" onclick="pickPose(this)">Embrace from behind</div>
+      <div class="chip gold" data-val="facing each other, foreheads nearly touching, eyes closed, charged moment before a kiss" onclick="pickPose(this)">Pre-kiss - foreheads close</div>
+      <div class="chip gold" data-val="passionate kiss, one hand cupping face, bodies pressed together, urgent" onclick="pickPose(this)">Passionate kiss</div>
+      <div class="chip gold" data-val="one figure seated, the other standing close behind with hands on their shoulders, protective" onclick="pickPose(this)">Seated + standing behind</div>
+      <div class="chip gold" data-val="both lying facing each other, close proximity, intimate eye contact, quiet moment" onclick="pickPose(this)">Lying facing each other</div>
+      <div class="chip gold" data-val="one figure pressed against wall by the other, intense tension, faces close" onclick="pickPose(this)">Wall press - tension</div>
+      <div class="chip gold" data-val="one figure carrying or lifting the other, movement and energy, joyful or urgent" onclick="pickPose(this)">Lift or carry</div>
+      <div class="chip gold" data-val="back to back, both looking outward in opposite directions, contrasting stances" onclick="pickPose(this)">Back to back</div>
+      <div class="chip gold" data-val="one figure whispering into the other's ear, close, private, tension or intimacy" onclick="pickPose(this)">Whisper - ear close</div>
+      <div class="chip gold" data-val="one figure lying with head resting in the other's lap, peaceful afterglow, tender" onclick="pickPose(this)">Head in lap - tender</div>
+    </div>
+
+    <div style="margin-top:14px;" class="f combo-wrap">
+      <label>Custom Pose Detail</label>
+      <input type="text" id="pose-extra" placeholder="Type or pick a suggestion..." list="pose-extra-list" autocomplete="off">
+      <span class="combo-arrow">v</span>
+      <datalist id="pose-extra-list">
+        <option value="wet hair clinging to face, water droplets on skin">
+        <option value="steam rising in background, post-shower glow">
+        <option value="towel loosely held around waist, just dressed">
+        <option value="silk sheets tangled, just woken">
+        <option value="caught in rain, clothes soaked">
+        <option value="firelight flickering on skin">
+        <option value="neon light casting color across body">
+        <option value="shadow masking half the face dramatically">
+        <option value="out of breath, chest heaving slightly">
+        <option value="bruised lip, evidence of tension">
+        <option value="smudged makeup, emotional rawness">
+        <option value="natural light through venetian blinds, stripe shadows">
+      </datalist>
+    </div>
+  </div>
+
+  <!-- 06 WARDROBE -->
+  <div class="sec">
+    <div class="sec-hd">
+      <span class="sec-n">06</span>
+      <span class="sec-t">Wardrobe & State of Dress</span>
+      <span class="sec-line"></span>
+    </div>
+    <div class="g2">
+      <div class="f">
+        <label>Clothing Style</label>
+        <select id="wardrobe">
+          <option value="">- select -</option>
+          <optgroup label="Everyday">
+            <option>Casual streetwear</option>
+            <option>Smart casual</option>
+            <option>Business formal</option>
+            <option>Athleisure / gym wear</option>
+          </optgroup>
+          <optgroup label="Lifestyle">
+            <option>Luxury fashion, designer wear</option>
+            <option>Grunge, layered distressed</option>
+            <option>Military tactical</option>
+            <option>Western / cowboy</option>
+            <option>Gothic / dark academia</option>
+          </optgroup>
+          <optgroup label="Intimate">
+            <option>Underwear / lingerie only</option>
+            <option>Sheer or translucent fabric</option>
+            <option>Undressed, sheet or towel</option>
+            <option>Oversized shirt, nothing else</option>
+            <option>Partially undressed, mid-change</option>
+          </optgroup>
+          <optgroup label="No clothing">
+            <option>Nude - artistic tasteful</option>
+            <option>Nude - full body natural</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="f">
+        <label>Wardrobe Detail</label>
+        <input type="text" id="wardrobe-detail" placeholder="Type or pick..." list="wardrobe-detail-list" autocomplete="off">
+        <datalist id="wardrobe-detail-list">
+          <option value="top two buttons undone, relaxed">
+          <option value="jacket slipping off one shoulder">
+          <option value="shirt untucked, rumpled">
+          <option value="fabric clinging with dampness">
+          <option value="waistband sitting low on hips">
+          <option value="strap falling off shoulder, casual">
+          <option value="collar pulled wide, neck exposed">
+          <option value="robe hanging open, belt loose">
+          <option value="oversized shirt barely covering thighs">
+          <option value="lace edge visible at neckline">
+          <option value="zipper partially undone, deliberate">
+          <option value="fresh from laundry, soft and worn-in">
+          <option value="tailored sharp - every seam intentional">
+          <option value="distressed edges, frayed hems, worn through">
+        </datalist>
+      </div>
+    </div>
+  </div>
+
+  <!-- 07 SETTING & LIGHT -->
+  <div class="sec">
+    <div class="sec-hd">
+      <span class="sec-n">07</span>
+      <span class="sec-t">Setting & Lighting</span>
+      <span class="sec-line"></span>
+    </div>
+    <div class="g2">
+      <div class="f">
+        <label>Setting</label>
+        <select id="setting">
+          <option value="">- unspecified -</option>
+          <option>Minimal studio white</option>
+          <option>Dark studio black</option>
+          <option>Apartment bedroom</option>
+          <option>Apartment living room</option>
+          <option>Bathroom mirror</option>
+          <option>Rooftop city night</option>
+          <option>Outdoor golden hour</option>
+          <option>Forest natural light</option>
+          <option>Gym locker room</option>
+          <option>Hotel room moody</option>
+          <option>Pool or beach</option>
+          <option>Urban street night</option>
+        </select>
+      </div>
+      <div class="f">
+        <label>Lighting</label>
+        <select id="lighting">
+          <option value="">- select -</option>
+          <option>Golden hour warm rim light</option>
+          <option>Soft window diffused</option>
+          <option>Low-key dramatic shadows</option>
+          <option>Neon mixed color</option>
+          <option>Candlelight warm flicker</option>
+          <option>Harsh midday sun</option>
+          <option>Studio three-point</option>
+          <option>Moonlight cold blue</option>
+          <option>Practical lamp warm</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 08 RENDER QUALITY -->
+  <div class="sec">
+    <div class="sec-hd">
+      <span class="sec-n">08</span>
+      <span class="sec-t">Quality & Expression</span>
+      <span class="sec-line"></span>
+    </div>
+    <div class="g2">
+      <div class="f">
+        <label>Shot Type</label>
+        <select id="shot">
+          <option value="">- select -</option>
+          <option>Tight portrait - face only</option>
+          <option>Head and shoulders</option>
+          <option>Chest up - medium</option>
+          <option>Waist up</option>
+          <option>Three-quarter body</option>
+          <option>Full body head to toe</option>
+        </select>
+      </div>
+      <div class="f">
+        <label>Expression / Energy</label>
+        <select id="expression">
+          <option value="">- select -</option>
+          <option>Intense brooding gaze</option>
+          <option>Soft warm smile</option>
+          <option>Cold distant stare</option>
+          <option>Playful mischievous</option>
+          <option>Fierce determined</option>
+          <option>Vulnerable emotional</option>
+          <option>Seductive heavy-lidded</option>
+          <option>Joyful laughing</option>
+          <option>Mysterious half-smile</option>
+          <option>Raw unguarded</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:14px;">
+      <div class="srow">
+        <span class="slbl">Realism Detail</span>
+        <input type="range" min="1" max="10" value="9" id="s-real" oninput="sv('s-real','sv-real')">
+        <span class="sv" id="sv-real">9</span>
+      </div>
+      <div class="srow">
+        <span class="slbl">Skin Detail / SSS</span>
+        <input type="range" min="1" max="10" value="8" id="s-skin" oninput="sv('s-skin','sv-skin')">
+        <span class="sv" id="sv-skin">8</span>
+      </div>
+      <div class="srow">
+        <span class="slbl">Cinematic Drama</span>
+        <input type="range" min="1" max="10" value="7" id="s-drama" oninput="sv('s-drama','sv-drama')">
+        <span class="sv" id="sv-drama">7</span>
+      </div>
+    </div>
+    <div style="margin-top:12px;" class="f">
+      <label>Any Additional Details</label>
+      <textarea id="extra" placeholder="Type freely or pick a starting point below..."></textarea>
+      <datalist id="extra-list"></datalist>
+      <div class="chips" style="margin-top:8px;" id="extra-suggestions">
+        <div class="chip" onclick="appendExtra('skin glistening, post-exertion sheen')">Post-exertion glow</div>
+        <div class="chip" onclick="appendExtra('goosebumps on arms and neck')">Goosebumps</div>
+        <div class="chip" onclick="appendExtra('visible breath in cold air')">Cold breath</div>
+        <div class="chip" onclick="appendExtra('sweat on brow, upper lip, collarbone')">Sweat detail</div>
+        <div class="chip" onclick="appendExtra('smudged eyeliner, emotionally raw')">Smudged makeup</div>
+        <div class="chip" onclick="appendExtra('flushed cheeks, red ears, reactive skin')">Flushed skin</div>
+        <div class="chip" onclick="appendExtra('single strand of hair across face')">Hair across face</div>
+        <div class="chip" onclick="appendExtra('gold chain or necklace catching light')">Jewellery catch</div>
+        <div class="chip" onclick="appendExtra('watch on wrist, luxury or tactical')">Watch detail</div>
+        <div class="chip" onclick="appendExtra('lip slightly bitten, tension in jaw')">Bitten lip</div>
+        <div class="chip" onclick="appendExtra('shadow falling across half the face')">Half-shadow face</div>
+        <div class="chip" onclick="appendExtra('skin warm and golden from ambient light')">Warm ambient glow</div>
+      </div>
+    </div>
+  </div>
+
+<!-- SCENE COMPOSER - PHASE 3 -->
+  <div class="scene-composer">
+    <div class="scene-composer-hd">
+      <div class="sc-title"><span class="sc-p1">THE</span> <span class="sc-p2">RIFT</span></div>
+      <div>
+        <div class="sc-badge">ENVIRONMENT SUMMONING</div>
+      <div style="font-size:9px;color:var(--muted);margin-top:3px;letter-spacing:1px;">Place your character within a world - merged into one prompt</div>
+      </div>
+    </div>
+    <div class="scene-composer-body">
+
+      <div class="sc-row">
+        <div class="f">
+          <label>Scene Setting</label>
+          <select id="sc-setting">
+            <option value="">- no setting -</option>
+            <optgroup label="Interior">
+              <option>Dim apartment bedroom, practical lamp only</option>
+              <option>Luxury hotel room, city lights through window</option>
+            <option>Bathroom - steam, mirror, wet tiles</option>
+              <option>Apartment living room, night, single lamp</option>
+              <option>Moody dive bar, neon and low light</option>
+              <option>Industrial warehouse, shafts of light</option>
+              <option>Abandoned hospital corridor</option>
+              <option>Underground bunker, harsh fluorescent</option>
+              <option>Research lab, cold blue light</option>
+              <option>Firelit cabin interior, winter</option>
+            </optgroup>
+            <optgroup label="Urban Exterior">
+              <option>Rain-slicked city street at night, neon reflections</option>
+              <option>Rooftop at golden hour, city below</option>
+              <option>Dark alley, single overhead light</option>
+              <option>Empty highway at 3am</option>
+              <option>Underground carpark, concrete and shadow</option>
+              <option>Graffiti wall, urban decay</option>
+            </optgroup>
+            <optgroup label="Nature">
+              <option>Dense forest, dappled afternoon light</option>
+              <option>Open plains, golden hour, wind in grass</option>
+              <option>Coastal cliff, sea spray, overcast</option>
+              <option>Snowy mountain pass, silence and cold</option>
+              <option>Swamp, murky water, hanging moss</option>
+              <option>Desert canyon, harsh midday shadow</option>
+            </optgroup>
+            <optgroup label="Post-Apocalyptic / Game">
+              <option>Overgrown city ruins, nature reclaiming</option>
+              <option>Flooded streets, submerged cars</option>
+              <option>Burned district, ash falling</option>
+              <option>Crumbling shopping mall, skylight broken</option>
+              <option>Abandoned frontier town, dust and wind</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="f">
+          <label>Time & Weather</label>
+          <select id="sc-time">
+            <option value="">- unspecified -</option>
+            <option>Dawn - first cold light</option>
+            <option>Golden hour morning</option>
+            <option>Harsh midday</option>
+            <option>Late afternoon slant light</option>
+            <option>Golden hour sunset</option>
+            <option>Blue hour dusk</option>
+            <option>Deep night, clear sky</option>
+            <option>Night, heavy rain</option>
+            <option>Night, light drizzle and mist</option>
+            <option>Overcast flat grey</option>
+            <option>Snowfall, quiet</option>
+            <option>Dust storm approaching</option>
+            <option>Heat haze, brutal sun</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sc-row">
+        <div class="f">
+          <label>Scene Lighting</label>
+          <select id="sc-light">
+            <option value="">- unspecified -</option>
+            <option>Golden rim light from window</option>
+            <option>Low-key single source, hard shadows</option>
+            <option>Neon signs, multicolour spill</option>
+            <option>Candlelight, warm and flickering</option>
+            <option>Fluorescent, cold and clinical</option>
+            <option>Moonlight, cool blue-silver</option>
+            <option>Fire glow, amber and orange</option>
+            <option>TV or screen glow, shifting</option>
+            <option>Practical lamp, warm pool of light</option>
+            <option>Diffused overcast, flat and soft</option>
+            <option>God rays through broken roof</option>
+            <option>Streetlamp sodium yellow</option>
+          </select>
+        </div>
+        <div class="f">
+          <label>Narrative Tone</label>
+          <select id="sc-tone">
+            <option value="">- unspecified -</option>
+            <option>Tense, dangerous, pre-conflict</option>
+            <option>Quiet, melancholy, lonely</option>
+            <option>Hopeful, warm, safe</option>
+            <option>Romantic, intimate, charged</option>
+            <option>Horror - dread and unease</option>
+            <option>Epic, awe-inspiring, vast</option>
+            <option>Aftermath - wreckage, stillness</option>
+            <option>Raw, unfiltered, documentary</option>
+            <option>Mysterious, unknown, suspenseful</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="f">
+        <label>Atmosphere Details</label>
+        <div class="sc-chips">
+          <div class="chip" data-sc="vol" data-val="volumetric god rays piercing through gaps">God rays</div>
+          <div class="chip" data-sc="vol" data-val="dust motes floating in beam of light">Dust motes</div>
+          <div class="chip" data-sc="vol" data-val="rising smoke in background distance">Smoke rising</div>
+          <div class="chip" data-sc="vol" data-val="neon reflections rippling on wet pavement">Neon on wet floor</div>
+          <div class="chip" data-sc="vol" data-val="visible breath condensing in cold air">Cold breath</div>
+          <div class="chip" data-sc="vol" data-val="fireflies and soft bioluminescence">Fireflies</div>
+          <div class="chip" data-sc="vol" data-val="moonlit shadow patterns across the ground">Moon shadows</div>
+          <div class="chip" data-sc="vol" data-val="heavy rain streaks on glass or surface">Rain on glass</div>
+          <div class="chip" data-sc="vol" data-val="ash or embers drifting downward slowly">Falling ash</div>
+          <div class="chip" data-sc="vol" data-val="dense atmospheric haze layering the distance">Atmospheric haze</div>
+        </div>
+      </div>
+
+      <div class="f">
+        <label>Environmental Storytelling - props & details</label>
+        <input type="text" id="sc-props" placeholder="Type or pick a detail..." list="sc-props-list" autocomplete="off">
+        <datalist id="sc-props-list">
+          <option value="single light left on in an empty room">
+          <option value="half-empty glass on the nightstand">
+          <option value="clothes on the floor from earlier">
+          <option value="sheets tangled and thrown back">
+          <option value="rain-streaked window, city blurred beyond">
+          <option value="candle burned nearly to the end">
+          <option value="weapon resting within arm's reach">
+          <option value="framed photo face-down on the shelf">
+          <option value="pill bottles, hospital bracelet, signs of survival">
+          <option value="map pinned with routes marked in red">
+          <option value="broken mirror, scattered glass">
+          <option value="fresh flowers beginning to wilt">
+        </datalist>
+      </div>
+
+      <div class="sc-row">
+        <div class="f">
+          <label>Camera Angle</label>
+          <select id="sc-camera">
+            <option value="">- default -</option>
+            <option>Eye-level, straight on</option>
+            <option>Low angle - looking up at subject</option>
+            <option>High angle - looking down</option>
+            <option>Over-shoulder POV</option>
+            <option>Dutch tilt, tension</option>
+            <option>Extreme wide establishing</option>
+            <option>Intimate ground-level</option>
+            <option>Aerial drone wide</option>
+          </select>
+        </div>
+        <div class="f">
+          <label>Depth of Field</label>
+          <select id="sc-dof">
+            <option value="">- default -</option>
+            <option>Shallow - subject sharp, bg bokeh</option>
+            <option>Deep - all planes sharp</option>
+            <option>Foreground blur, sharp background</option>
+            <option>Cinematic tilt-shift</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sc-row">
+        <div class="f">
+          <label>Film / Color Grade</label>
+          <select id="sc-grade">
+            <option value="">- unspecified -</option>
+            <option>Kodak Portra 400 - warm natural grain</option>
+            <option>Desaturated teal-orange cinematic</option>
+            <option>Bleach bypass - high contrast, desaturated</option>
+            <option>Fuji Velvia - vivid, saturated</option>
+            <option>Faded vintage, lifted shadows</option>
+            <option>Deep crushed blacks, rich shadows</option>
+            <option>Cold moody blue-green</option>
+            <option>Warm amber late-night</option>
+          </select>
+        </div>
+        <div class="f">
+          <label>Scene Purpose</label>
+          <select id="sc-purpose">
+            <option value="">- general -</option>
+            <option>Key art / poster shot</option>
+            <option>Cinematic still / film frame</option>
+            <option>Game cutscene render</option>
+            <option>Editorial / magazine cover</option>
+            <option>Intimate / private moment</option>
+            <option>Action hero shot</option>
+            <option>Character reveal / introduction</option>
+          </select>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="gen-wrap">
+    <button class="gen-btn" onclick="forge()">SUMMON</button>
+  </div>
+
+</div>
+
+<!-- OUTPUT COLUMN -->
+<div class="out-col">
+  <div class="qa-card" id="qa-card">
+    <div class="qa-top">
+      <div>
+        <div class="qa-kicker">PHASE 2 DIFFERENTIATOR</div>
+        <div class="qa-title">PROMPT QA + OPTIMIZER</div>
+      </div>
+      <div class="qa-score-wrap">
+        <span class="qa-score" id="qa-score">--</span>
+        <span class="qa-status" id="qa-status">WAITING</span>
+      </div>
+    </div>
+    <div class="qa-summary" id="qa-summary">Forge a character to score prompt quality and get model-specific improvement guidance.</div>
+    <div class="qa-next" id="qa-next">Generate prompts to unlock optimization guidance.</div>
+    <div class="qa-grid" id="qa-grid"></div>
+  </div>
+
+
+  <div class="out-tabs">
+    <div class="otab" data-p="scene" onclick="switchOut('scene')"><div class="pdot" style="background:var(--gold);width:6px;height:6px;border-radius:50%"></div> SCENE</div>
+    <div class="otab active" data-p="nb" onclick="switchOut('nb')"><div class="pdot" style="background:var(--nb);width:6px;height:6px;border-radius:50%"></div> NB</div>
+    <div class="otab" data-p="gemini" onclick="switchOut('gemini')"><div class="pdot" style="background:var(--gemini);width:6px;height:6px;border-radius:50%"></div> GEMINI</div>
+    <div class="otab" data-p="grok" onclick="switchOut('grok')"><div class="pdot" style="background:var(--grok);width:6px;height:6px;border-radius:50%"></div> GROK</div>
+    <div class="otab" data-p="gpt" onclick="switchOut('gpt')"><div class="pdot" style="background:var(--gpt);width:6px;height:6px;border-radius:50%"></div> GPT</div>
+    <div class="otab" data-p="px" onclick="switchOut('px')"><div class="pdot" style="background:var(--px);width:6px;height:6px;border-radius:50%"></div> PERPLEXITY</div>
+  </div>
+
+  <!-- NB -->
+  <div class="opanel show" id="op-nb">
+    <div class="pcard" data-p="nb">
+      <div class="pcard-hd">
+        <span class="pcard-lbl">SUMMONING PROMPT</span>
+        <span class="pcard-name" style="color:var(--nb)">NANO BANANA</span>
+        <button class="cp" onclick="doCopy('nb-pos',this)">EXTRACT</button>
+      </div>
+      <div class="pcard-body ph" id="nb-pos">Fill in character details and hit Forge...</div>
+    </div>
+    <div class="pcard neg">
+      <div class="pcard-hd">
+        <span class="pcard-lbl">BANISHMENT PROMPT</span>
+        <span class="pcard-name" style="color:var(--red)">BANISH</span>
+        <button class="cp" onclick="doCopy('nb-neg',this)">EXTRACT</button>
+      </div>
+      <div class="pcard-body ph" id="nb-neg">Negative prompt here...</div>
+    </div>
+  </div>
+
+  <!-- GEMINI -->
+  <div class="opanel" id="op-gemini">
+    <div class="pcard" data-p="gemini">
+      <div class="pcard-hd">
+        <span class="pcard-lbl">DESCRIPTIVE PROMPT</span>
+        <span class="pcard-name" style="color:var(--gemini)">GEMINI IMAGEN</span>
+        <button class="cp" onclick="doCopy('gemini-pos',this)">EXTRACT</button>
+      </div>
+      <div class="pcard-body ph" id="gemini-pos">Awaiting summoning signal...</div>
+    </div>
+    <div class="ptip">
+      <strong>Gemini tip:</strong> Uses Imagen under the hood. Responds best to <strong>natural descriptive prose</strong> written like a photography brief. Lead with "A photorealistic portrait of..." or "A game render of...". Avoid pure comma lists.
+    </div>
+  </div>
+
+  <!-- GROK -->
+  <div class="opanel" id="op-grok">
+    <div class="pcard" data-p="grok">
+      <div class="pcard-hd">
+        <span class="pcard-lbl">IMAGE PROMPT</span>
+        <span class="pcard-name" style="color:var(--grok)">GROK / AURORA</span>
+        <button class="cp" onclick="doCopy('grok-pos',this)">EXTRACT</button>
+      </div>
+      <div class="pcard-body ph" id="grok-pos">Awaiting summoning signal...</div>
+    </div>
+    <div class="ptip">
+      <strong>Grok tip:</strong> Aurora model handles <strong>long punchy keyword chains</strong> excellently. Strong at dramatic lighting and bold aesthetics. Append <strong>--ar 2:3</strong> for portrait. Handles mature content well with age verification enabled.
+    </div>
+  </div>
+
+  <!-- GPT -->
+  <div class="opanel" id="op-gpt">
+    <div class="pcard" data-p="gpt">
+      <div class="pcard-hd">
+        <span class="pcard-lbl">GPT-4o IMAGE PROMPT</span>
+        <span class="pcard-name" style="color:var(--gpt)">CHATGPT</span>
+        <button class="cp" onclick="doCopy('gpt-pos',this)">EXTRACT</button>
+      </div>
+      <div class="pcard-body ph" id="gpt-pos">Awaiting summoning signal...</div>
+    </div>
+    <div class="ptip">
+      <strong>ChatGPT tip:</strong> GPT-4o image gen responds to <strong>intent-first clear instructions</strong>. State what you want explicitly at the start. Follow up conversationally to refine it - ChatGPT maintains context between turns.
+    </div>
+  </div>
+
+  <!-- PERPLEXITY -->
+  <div class="opanel" id="op-px">
+    <div class="pcard" data-p="px">
+      <div class="pcard-hd">
+        <span class="pcard-lbl">FLUX-STYLE PROMPT</span>
+        <span class="pcard-name" style="color:var(--px)">PERPLEXITY</span>
+        <button class="cp" onclick="doCopy('px-pos',this)">EXTRACT</button>
+      </div>
+      <div class="pcard-body ph" id="px-pos">Awaiting summoning signal...</div>
+    </div>
+    <div class="ptip">
+      <strong>Perplexity tip:</strong> Runs <strong>FLUX</strong> and loves dense descriptive keyword chains with quality anchors. You can reference real-world aesthetic touchstones like "shot by Annie Leibovitz" or "like a scene from Euphoria."
+    </div>
+  </div>
+
+  <!-- SCENE COMPOSITE -->
+  <div class="opanel" id="op-scene">
+    <div class="pcard" data-p="scene">
+      <div class="pcard-hd">
+        <span class="pcard-lbl">RIFT COMPOSITE PROMPT</span>
+        <span class="pcard-name" style="color:var(--gold)">ALL PLATFORMS</span>
+        <button class="cp" onclick="doCopy('scene-pos',this)">EXTRACT</button>
+      </div>
+      <div class="pcard-body ph" id="scene-pos">Configure the Rift and summon to generate a composite prompt...</div>
+    </div>
+    <div class="pcard" data-p="scene" style="margin-top:0;">
+      <div class="pcard-hd">
+        <span class="pcard-lbl">RIFT BANISHMENT</span>
+        <span class="pcard-name" style="color:var(--red)">BANISH</span>
+        <button class="cp" onclick="doCopy('scene-neg',this)">EXTRACT</button>
+      </div>
+      <div class="pcard-body ph" id="scene-neg">Negative prompt...</div>
+    </div>
+    <div class="ptip">
+      <strong>Scene Composite tip:</strong> This fuses your character prompt with the full environment. Use it as-is for <strong>Grok or Nano Banana</strong>. For <strong>Gemini or ChatGPT</strong>, paste the character tab first, then follow with "Place them in:" and paste the scene prompt as a second message.
+    </div>
+  </div>
+
+  <button class="copy-all" onclick="copyAll()">BROADCAST TO ALL CHANNELS</button>
+
+</div>
+</div>
+
+<footer class="app-footer">
+  <div class="app-footer-brand">WRAITH BETA</div>
+  <div class="app-footer-copy">Local-first character summoning engine. Deploy over HTTPS to unlock install and offline support.</div>
+</footer>
+
+<script src="js/app-state.js"></script>
+<script src="js/scene-composer.js"></script>
+<script src="js/prompt-analysis.js"></script>
+<script src="js/prompt-engine.js"></script>
+<script src="js/library.js"></script>
+
+<!-- PWA: OFFLINE BANNER -->
+<div id="offline-banner" style="
+  display:none;
+  position:fixed;
+  bottom:0; left:0; right:0;
+  background:#1a0a0a;
+  border-top:1px solid #f87171;
+  color:#f87171;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  letter-spacing:1.5px;
+  padding:10px 20px;
+  text-align:center;
+  z-index:9999;
+">
+  SIGNAL LOST - WRAITH IS RUNNING FROM CACHE
+</div>
+<!-- PWA: INSTALL PROMPT BANNER -->
+
+
+<div id="install-banner" style="
+  display:none;
+  position:fixed;
+  bottom:0; left:0; right:0;
+  background:#13131f;
+  border-top:1px solid #7b6ef6;
+  padding:14px 20px;
+  z-index:9998;
+  display:none;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <img src="icons/icon-72.png" width="36" height="36" style="border-radius:6px;" alt="WRAITH">
+    <div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:3px;color:#e2e0f0;">INSTALL WRAITH</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#555570;letter-spacing:1px;">Add to home screen - works offline</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button onclick="dismissInstall()" style="
+      padding:8px 16px;
+      background:transparent;
+      border:1px solid #252538;
+      color:#555570;
+      font-family:'JetBrains Mono',monospace;
+      font-size:10px;
+      letter-spacing:1px;
+      cursor:pointer;
+    ">NOT NOW</button>
+    <button onclick="triggerInstall()" style="
+      padding:8px 20px;
+      background:linear-gradient(135deg,#7b6ef6,#c084fc);
+      border:none;
+      color:#09090f;
+      font-family:'Bebas Neue',sans-serif;
+      font-size:16px;
+      letter-spacing:3px;
+      cursor:pointer;
+    ">INSTALL</button>
+  </div>
+</div>
+
+<!-- PWA: NEW INCANTATION AVAILABLE TOAST -->
+
+
+<div id="update-toast" style="
+  display:none;
+  position:fixed;
+  top:16px; right:16px;
+  background:#1a1a2a;
+  border:1px solid #7b6ef6;
+  padding:12px 16px;
+  z-index:9999;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  color:#a09ec0;
+  letter-spacing:1px;
+  max-width:280px;
+">
+  <div style="color:#7b6ef6;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;margin-bottom:6px;">NEW INCANTATION AVAILABLE</div>
+  New version ready - reload to apply.
+  <div style="display:flex;gap:8px;margin-top:10px;">
+    <button onclick="document.getElementById('update-toast').style.display='none'" style="flex:1;padding:6px;background:transparent;border:1px solid #252538;color:#555570;font-family:'JetBrains Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:1px;">LATER</button>
+    <button onclick="location.reload()" style="flex:1;padding:6px;background:#7b6ef6;border:none;color:#09090f;font-family:'Bebas Neue',sans-serif;font-size:14px;cursor:pointer;letter-spacing:2px;">RELOAD</button>
+  </div>
+</div>
+
+<script src="js/pwa.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

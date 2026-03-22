@@ -1,5 +1,5 @@
 (function () {
-  const pf = (window.PersonaForge = window.PersonaForge || {});
+  const pf = (window.Wraith = window.Wraith || {});
   const { gv, getChipVals, escHtml } = pf.helpers;
 
   const LIB_KEY = 'wraith-character-vault';
@@ -329,12 +329,12 @@
   }
 
   async function saveSummoning() {
-    const nameInput = document.getElementById('summoning-name');
+    const nameInput = document.getElementById('preset-name');
     const name = nameInput?.value?.trim();
     if (!name) {
       nameInput?.focus();
       nameInput?.setAttribute('placeholder', 'Enter a name to bind this summoning!');
-      setTimeout(() => nameInput?.setAttribute('placeholder', 'Name this character...'), 2000);
+      setTimeout(() => nameInput?.setAttribute('placeholder', 'Name this summoning...'), 2000);
       return;
     }
 
@@ -379,7 +379,7 @@
     const btn = document.querySelector('.gen-btn');
     if (!btn) return;
     const orig = btn.textContent;
-    btn.textContent = '⬡ RECALLED';
+    btn.textContent = 'RECALLED';
     btn.style.background = 'linear-gradient(135deg, #34d399, #059669)';
     setTimeout(() => {
       btn.textContent = orig;
@@ -532,7 +532,7 @@
     document.getElementById('lib-drawer')?.classList.add('open');
     document.getElementById('lib-overlay')?.classList.add('open');
     renderVault();
-    setTimeout(() => document.getElementById('summoning-name')?.focus(), 350);
+    setTimeout(() => document.getElementById('preset-name')?.focus(), 350);
   }
 
   function closeVault() {
@@ -579,7 +579,9 @@
   }
 
   window.saveSummoning = saveSummoning;
+  window.savePreset = saveSummoning;
   window.clearVault = clearVault;
+  window.clearLibrary = clearVault;
   window.deleteSummoning = deleteSummoning;
   window.loadSummoning = loadSummoning;
   window.duplicateSummoning = duplicateSummoning;
@@ -587,8 +589,10 @@
   window.exportAllSummonings = exportAllSummonings;
   window.importSummonings = importSummonings;
   window.openVault = openVault;
+  window.openLibrary = openVault;
   window.closeVault = closeVault;
+  window.closeLibrary = closeVault;
   window.renderVault = renderVault;
-
+  window.renderLibrary = renderVault;
   pf.vault = { initVault, loadVault };
 })();

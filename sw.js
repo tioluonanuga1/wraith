@@ -1,10 +1,10 @@
-/* ═══════════════════════════════════════════════
-   PERSONA FORGE � Service Worker
+/* ===============================================
+   WRAITH - Service Worker
    Cache-first strategy, full offline support
-   ═══════════════════════════════════════════════ */
+   =============================================== */
 
-const CACHE_NAME = 'wraith-v1';
-const CACHE_VERSION = '1.0.0-beta';
+const CACHE_NAME = 'wraith-v2026-03-21-2';
+const CACHE_VERSION = '1.0.1-beta';
 
 // All assets to pre-cache on install
 const PRECACHE_ASSETS = [
@@ -19,18 +19,17 @@ const PRECACHE_ASSETS = [
   './js/library.js',
   './js/pwa.js',
   './js/main.js',
-  // Google Fonts � cache the CSS + actual font files
   'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@300;400;500&display=swap'
 ];
 
-// -- INSTALL: pre-cache all core assets
+// INSTALL: pre-cache all core assets
 self.addEventListener('install', event => {
   console.log('[SW] Installing WRAITH v' + CACHE_VERSION);
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('[SW] Pre-caching assets');
-        // Cache what we can � font CDN may fail in some environments, that's OK
+        // Cache what we can - font CDN may fail in some environments, that's OK
         return Promise.allSettled(
           PRECACHE_ASSETS.map(url =>
             cache.add(url).catch(err => {
@@ -40,13 +39,13 @@ self.addEventListener('install', event => {
         );
       })
       .then(() => {
-        console.log('[SW] Install complete — skipping wait');
+        console.log('[SW] Install complete - skipping wait');
         return self.skipWaiting();
       })
   );
 });
 
-// -- ACTIVATE: clean up old caches
+// ACTIVATE: clean up old caches
 self.addEventListener('activate', event => {
   console.log('[SW] Activating');
   event.waitUntil(
@@ -68,34 +67,34 @@ self.addEventListener('activate', event => {
   );
 });
 
-// -- FETCH: cache-first for app shell, network-first for fonts
+// FETCH: network-first for same-origin app assets so deploys update quickly,
+// cache-first fallback for offline resilience, and network-first for fonts.
 self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Skip non-GET and browser-extension requests
   if (request.method !== 'GET') return;
   if (url.protocol === 'chrome-extension:') return;
 
-  // Google Fonts — network first, cache fallback
   if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {
     event.respondWith(networkFirstWithCache(request));
     return;
   }
 
-  // App shell & all local assets — cache first
+  if (url.origin === self.location.origin) {
+    event.respondWith(networkFirstWithCache(request));
+    return;
+  }
+
   event.respondWith(cacheFirstWithNetwork(request));
 });
 
-// Cache-first: try cache, fall back to network and update cache
 async function cacheFirstWithNetwork(request) {
   const cached = await caches.match(request);
   if (cached) {
-    // Serve from cache, update in background
     updateCache(request);
     return cached;
   }
-  // Not in cache — fetch from network and cache it
   try {
     const response = await fetch(request);
     if (response && response.status === 200) {
@@ -104,7 +103,6 @@ async function cacheFirstWithNetwork(request) {
     }
     return response;
   } catch {
-    // Full offline fallback — return cached index.html
     const fallback = await caches.match('./index.html');
     return fallback || new Response('WRAITH is offline. Open it once while online to cache it.', {
       status: 503,
@@ -113,7 +111,6 @@ async function cacheFirstWithNetwork(request) {
   }
 }
 
-// Network-first: try network, fall back to cache
 async function networkFirstWithCache(request) {
   try {
     const response = await fetch(request);
@@ -128,7 +125,6 @@ async function networkFirstWithCache(request) {
   }
 }
 
-// Background cache update (stale-while-revalidate pattern)
 async function updateCache(request) {
   try {
     const response = await fetch(request);
@@ -137,11 +133,11 @@ async function updateCache(request) {
       cache.put(request, response);
     }
   } catch {
-    // Background update failed silently — cached version still served
+    // Background update failed silently - cached version still served
   }
 }
 
-// -- MESSAGE: handle cache clear requests from the app
+// MESSAGE: handle cache clear requests from the app
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'CLEAR_CACHE') {
     caches.delete(CACHE_NAME).then(() => {
@@ -152,6 +148,3 @@ self.addEventListener('message', event => {
     event.ports[0]?.postMessage({ type: 'VERSION', version: CACHE_VERSION });
   }
 });
-
-
-

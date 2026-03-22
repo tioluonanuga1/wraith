@@ -1,5 +1,5 @@
 (function () {
-  const pf = (window.PersonaForge = window.PersonaForge || {});
+  const pf = (window.Wraith = window.Wraith || {});
 
   function appendExtra(val) {
     const el = document.getElementById('extra');

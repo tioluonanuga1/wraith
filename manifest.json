@@ -1,8 +1,12 @@
 {
-  "name": "WRAITH — Character Summoning Engine",
+  "id": "./",
+  "name": "WRAITH - Character Summoning Engine",
   "short_name": "WRAITH",
   "description": "Every character, summoned in every platform. Build full character locks for Nano Banana, Gemini, Grok, ChatGPT and Perplexity simultaneously. Phantom and Manifest modes.",
+  "lang": "en",
+  "dir": "ltr",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#09090f",
